@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مولد قوالب تيك توك التفاعلي</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- html2canvas for export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800;900&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #0d0e12;
+            color: #f3efea;
+        }
+
+        .en-font {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        /* Custom Scrollbar for sidebar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #181920;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2a2c38;
+            border-radius: 3px;
+        }
+
+        /* Canvas Frame / Aspect Ratio Constraint */
+        .tiktok-canvas {
+            width: 360px;
+            height: 640px; /* 9:16 Ratio for preview */
+            position: relative;
+            overflow: hidden;
+            background-color: #121214;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8), 0 0 30px rgba(63, 67, 215, 0.15);
+        }
+
+        /* Background Glows */
+        .glow-bg {
+            background: radial-gradient(circle at 80% 20%, rgba(63, 67, 215, 0.25) 0%, transparent 50%),
+                        radial-gradient(circle at 10% 80%, rgba(63, 67, 215, 0.2) 0%, transparent 60%);
+        }
+
+        /* High quality scale for canvas render */
+        .scale-content {
+            transform-origin: top left;
+        }
+
+        /* Custom inputs styling */
+        .control-input {
+            background: #181920;
+            border: 1px solid #2e303e;
+            color: #f3efea;
+            border-radius: 8px;
+            padding: 8px 12px;
+            width: 100%;
+            transition: all 0.2s;
+        }
+        .control-input:focus {
+            border-color: #3F43D7;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(63, 67, 215, 0.3);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col lg:flex-row">
+
+    <!-- Controls Panel (Left side in desktop, full-width on mobile) -->
+    <div class="w-full lg:w-[420px] bg-[#14151a] border-b lg:border-b-0 lg:border-l border-[#232530] p-5 flex flex-col gap-6 overflow-y-auto max-h-screen z-10">
+        
+        <!-- Header -->
+        <div class="flex items-center justify-between border-b border-[#232530] pb-4">
+            <div>
+                <h1 class="text-xl font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-wand-magic-sparkles text-[#3F43D7]"></i>
+                    صانع بوستات تيك توك
+                </h1>
+                <p class="text-xs text-gray-400 mt-1">قالب برياضي واحترافي بنفس ألوان الحذاء</p>
+            </div>
+            <button id="exportBtn" onclick="exportTemplate()" class="bg-[#3F43D7] hover:bg-[#3235b0] text-white font-bold py-2 px-4 rounded-xl text-sm flex items-center gap-2 transition shadow-lg shadow-blue-900/40">
+                <i class="fa-solid fa-download"></i>
+                تحميل
+            </button>
+        </div>
+
+        <!-- Controls Sections -->
+        <div class="space-y-5">
+
+            <!-- Direction & Language -->
+            <div class="flex bg-[#1d1f27] p-1 rounded-xl">
+                <button onclick="setLanguage('ar')" id="langArBtn" class="flex-1 py-2 text-xs font-bold rounded-lg bg-[#3F43D7] text-white transition">العربية (RTL)</button>
+                <button onclick="setLanguage('en')" id="langEnBtn" class="flex-1 py-2 text-xs font-bold rounded-lg text-gray-400 hover:text-white transition">English (LTR)</button>
+            </div>
+
+            <!-- Colors Customize -->
+            <div class="bg-[#181920] p-4 rounded-xl border border-[#232530] space-y-3">
+                <h3 class="text-xs font-bold text-gray-300 uppercase tracking-wider flex items-center gap-2">
+                    <i class="fa-solid fa-palette text-[#3F43D7]"></i> ألوان القالب
+                </h3>
+                <div class="grid grid-cols-3 gap-3">
+                    <div>
+                        <label class="text-[11px] text-gray-400 block mb-1">البرتقالي/الأزرق</label>
+                        <div class="flex items-center gap-2">
+                            <input type="color" id="accentColor" value="#3F43D7" oninput="updateDesign()" class="w-8 h-8 rounded border-0 cursor-pointer bg-transparent">
+                            <span class="text-xs text-gray-300 uppercase font-mono" id="accentHex">#3F43D7</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-[11px] text-gray-400 block mb-1">الخلفية</label>
+                        <div class="flex items-center gap-2">
+                            <input type="color" id="bgColor" value="#121214" oninput="updateDesign()" class="w-8 h-8 rounded border-0 cursor-pointer bg-transparent">
+                            <span class="text-xs text-gray-300 uppercase font-mono" id="bgHex">#121214</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-[11px] text-gray-400 block mb-1">النص العاجي</label>
+                        <div class="flex items-center gap-2">
+                            <input type="color" id="textColor" value="#F3EFEA" oninput="updateDesign()" class="w-8 h-8 rounded border-0 cursor-pointer bg-transparent">
+                            <span class="text-xs text-gray-300 uppercase font-mono" id="textHex">#F3EFEA</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Header Content -->
+            <div class="space-y-3">
+                <h3 class="text-xs font-bold text-gray-300 uppercase tracking-wider">الجزء العلوي</h3>
+                <div class="grid grid-cols-3 gap-2">
+                    <div class="col-span-1">
+                        <label class="text-[11px] text-gray-400 block mb-1">رقم الشريحة</label>
+                        <input type="text" id="badgeNumInput" value="07" oninput="updateDesign()" class="control-input text-center font-bold">
+                    </div>
+                    <div class="col-span-2">
+                        <label class="text-[11px] text-gray-400 block mb-1">اسم الشعار</label>
+                        <input type="text" id="logoTextInput" value="MOVE" oninput="updateDesign()" class="control-input font-extrabold uppercase">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[11px] text-gray-400 block mb-1">العنوان الفرعي العلوي</label>
+                    <input type="text" id="subHeaderInput" value="POSTURE PROGRAM · 12 WEEKS" oninput="updateDesign()" class="control-input text-xs">
+                </div>
+            </div>
+
+            <!-- Main Titles -->
+            <div class="space-y-3">
+                <h3 class="text-xs font-bold text-gray-300 uppercase tracking-wider">العنوان الرئيسي</h3>
+                <div>
+                    <label class="text-[11px] text-gray-400 block mb-1">العنوان الأساسي</label>
+                    <textarea id="mainTitleInput" rows="2" oninput="updateDesign()" class="control-input text-sm font-bold">برنامج تصحيح القوام والقدم المسطحة</textarea>
+                </div>
+                <div>
+                    <label class="text-[11px] text-gray-400 block mb-1">الوصف الفرعي</label>
+                    <input type="text" id="descriptionInput" value="دليل تطبيقي + فيديوهات التمارين" oninput="updateDesign()" class="control-input text-xs">
+                </div>
+            </div>
+
+            <!-- Bullet Points -->
+            <div class="space-y-3">
+                <h3 class="text-xs font-bold text-gray-300 uppercase tracking-wider">نقاط المميزات</h3>
+                <div>
+                    <input type="text" id="bullet1Input" value="نقَيّم حالتك من القدم لين القوام" oninput="updateDesign()" class="control-input text-xs mb-2">
+                    <input type="text" id="bullet2Input" value="روتينات مرتبة أسبوع ورا أسبوع" oninput="updateDesign()" class="control-input text-xs mb-2">
+                    <input type="text" id="bullet3Input" value="١٠-١٥ دقيقة باليوم من بيتك" oninput="updateDesign()" class="control-input text-xs">
+                </div>
+            </div>
+
+            <!-- Stats Arch & CTA -->
+            <div class="space-y-3">
+                <h3 class="text-xs font-bold text-gray-300 uppercase tracking-wider">القوس السفلي ورز الدعوة</h3>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="text-[11px] text-gray-400 block mb-1">الرقم الكبيير</label>
+                        <input type="text" id="archNumInput" value="12" oninput="updateDesign()" class="control-input font-bold">
+                    </div>
+                    <div>
+                        <label class="text-[11px] text-gray-400 block mb-1">وصف الرقم</label>
+                        <input type="text" id="archTextInput" value="WEEKS" oninput="updateDesign()" class="control-input text-xs">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[11px] text-gray-400 block mb-1">نص الزر (CTA)</label>
+                    <input type="text" id="ctaInput" value="اشترك الحين" oninput="updateDesign()" class="control-input text-xs font-bold">
+                </div>
+                <div>
+                    <label class="text-[11px] text-gray-400 block mb-1">النص الفرعي للزر</label>
+                    <input type="text" id="ctaSubInput" value="الرابط في البايو" oninput="updateDesign()" class="control-input text-xs">
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Live Preview Area -->
+    <div class="flex-1 bg-[#090a0d] flex items-center justify-center p-4 min-h-[700px]">
+        
+        <!-- TikTok Aspect Box Preview Frame -->
+        <div id="tiktokPost" class="tiktok-canvas rounded-2xl flex flex-col justify-between p-6 select-none transition-all">
+            
+            <!-- Glow background overlay -->
+            <div class="glow-bg absolute inset-0 pointer-events-none"></div>
+
+            <!-- TOP HEADER -->
+            <div class="relative z-10 flex justify-between items-start">
+                <!-- Number Badge -->
+                <div id="badgeNum" class="w-9 h-9 bg-[#3F43D7] text-white flex items-center justify-center font-bold text-base rounded-md shadow-md">
+                    07
+                </div>
+
+                <!-- Logo & Sub-tag -->
+                <div class="text-left flex flex-col items-end">
+                    <div id="logoText" class="text-2xl font-black tracking-wider text-white en-font italic leading-none">
+                        MOVE
+                    </div>
+                    <div id="subHeader" class="text-[9px] font-bold text-gray-400 tracking-widest mt-1 uppercase">
+                        POSTURE PROGRAM · 12 WEEKS
+                    </div>
+                </div>
+            </div>
+
+            <!-- MIDDLE HERO CONTENT -->
+            <div class="relative z-10 my-auto pt-4">
+                <!-- Main Title -->
+                <h2 id="mainTitle" class="text-2xl font-black leading-tight text-[#F3EFEA] mb-3">
+                    برنامج تصحيح القوام والقدم المسطحة
+                </h2>
+
+                <!-- Divider -->
+                <div id="titleDivider" class="w-16 h-1 bg-[#3F43D7] rounded-full mb-3"></div>
+
+                <!-- Subtitle / Description -->
+                <p id="description" class="text-xs font-semibold text-gray-300 mb-5">
+                    دليل تطبيقي + فيديوهات التمارين
+                </p>
+
+                <!-- Checklist -->
+                <div class="space-y-2.5 text-xs text-gray-200 font-medium">
+                    <div class="flex items-center gap-2" id="b1Container">
+                        <i id="check1" class="fa-solid fa-check text-[11px] text-[#3F43D7]"></i>
+                        <span id="bullet1">نقَيّم حالتك من القدم لين القوام</span>
+                    </div>
+                    <div class="flex items-center gap-2" id="b2Container">
+                        <i id="check2" class="fa-solid fa-check text-[11px] text-[#3F43D7]"></i>
+                        <span id="bullet2">روتينات مرتبة أسبوع ورا أسبوع</span>
+                    </div>
+                    <div class="flex items-center gap-2" id="b3Container">
+                        <i id="check3" class="fa-solid fa-check text-[11px] text-[#3F43D7]"></i>
+                        <span id="bullet3">١٠-١٥ دقيقة باليوم من بيتك</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BOTTOM GRAPHIC & CTA AREA -->
+            <div class="relative z-10 flex items-end justify-between pt-4">
+                
+                <!-- Arch / Ring Graphic Corner -->
+                <div class="relative w-36 h-36 flex items-end">
+                    <!-- SVG Circular Arch -->
+                    <svg class="absolute inset-0 w-full h-full -rotate-45" viewBox="0 0 100 100">
+                        <circle cx="20" cy="80" r="55" fill="none" stroke="#212330" stroke-width="14" />
+                        <circle id="svgArch" cx="20" cy="80" r="55" fill="none" stroke="#3F43D7" stroke-width="14" stroke-dasharray="350" stroke-dashoffset="180" stroke-linecap="round" />
+                    </svg>
+
+                    <!-- Stat Inside Arch -->
+                    <div class="relative z-10 pb-2 pr-2">
+                        <div id="archNum" class="text-4xl font-black text-white leading-none en-font">
+                            12
+                        </div>
+                        <div id="archText" class="text-[9px] font-bold text-gray-400 tracking-wider uppercase mt-0.5 en-font">
+                            WEEKS
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CTA Button Box -->
+                <div class="flex flex-col items-center gap-1.5 pb-1">
+                    <button id="ctaBtn" class="bg-[#3F43D7] hover:brightness-110 text-white font-black px-6 py-2.5 rounded-full text-xs shadow-lg shadow-blue-600/30 transition transform active:scale-95">
+                        اشترك الحين
+                    </button>
+                    <span id="ctaSub" class="text-[9px] font-bold text-gray-400">
+                        الرابط في البايو
+                    </span>
+                </div>
+            </div>
+
+            <!-- FOOTER BRAND SLOGAN -->
+            <div class="relative z-10 text-right border-t border-gray-800/60 pt-2 mt-2">
+                <span class="text-[7px] font-extrabold text-gray-500 tracking-widest uppercase en-font">
+                    MOVEMENT STARTS HERE
+                </span>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- JavaScript Sync Logic -->
+    <script>
+        let currentLang = 'ar';
+
+        function updateDesign() {
+            // Get Colors
+            const accent = document.getElementById('accentColor').value;
+            const bg = document.getElementById('bgColor').value;
+            const text = document.getElementById('textColor').value;
+
+            // Update Hex Display
+            document.getElementById('accentHex').innerText = accent;
+            document.getElementById('bgHex').innerText = bg;
+            document.getElementById('textHex').innerText = text;
+
+            // Apply Colors to Elements
+            const canvas = document.getElementById('tiktokPost');
+            canvas.style.backgroundColor = bg;
+            canvas.style.color = text;
+
+            // Accent elements
+            document.getElementById('badgeNum').style.backgroundColor = accent;
+            document.getElementById('titleDivider').style.backgroundColor = accent;
+            document.getElementById('ctaBtn').style.backgroundColor = accent;
+            document.getElementById('ctaBtn').style.boxShadow = `0 10px 20px ${accent}40`;
+            document.getElementById('svgArch').setAttribute('stroke', accent);
+            
+            // Checkmarks
+            document.getElementById('check1').style.color = accent;
+            document.getElementById('check2').style.color = accent;
+            document.getElementById('check3').style.color = accent;
+
+            // Main Text Color
+            document.getElementById('mainTitle').style.color = text;
+
+            // Update Text Contents
+            document.getElementById('badgeNum').innerText = document.getElementById('badgeNumInput').value;
+            document.getElementById('logoText').innerText = document.getElementById('logoTextInput').value;
+            document.getElementById('subHeader').innerText = document.getElementById('subHeaderInput').value;
+            document.getElementById('mainTitle').innerText = document.getElementById('mainTitleInput').value;
+            document.getElementById('description').innerText = document.getElementById('descriptionInput').value;
+
+            document.getElementById('bullet1').innerText = document.getElementById('bullet1Input').value;
+            document.getElementById('bullet2').innerText = document.getElementById('bullet2Input').value;
+            document.getElementById('bullet3').innerText = document.getElementById('bullet3Input').value;
+
+            document.getElementById('archNum').innerText = document.getElementById('archNumInput').value;
+            document.getElementById('archText').innerText = document.getElementById('archTextInput').value;
+
+            document.getElementById('ctaBtn').innerText = document.getElementById('ctaInput').value;
+            document.getElementById('ctaSub').innerText = document.getElementById('ctaSubInput').value;
+        }
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            const post = document.getElementById('tiktokPost');
+            const langArBtn = document.getElementById('langArBtn');
+            const langEnBtn = document.getElementById('langEnBtn');
+
+            if (lang === 'en') {
+                post.setAttribute('dir', 'ltr');
+                post.style.fontFamily = "'Plus Jakarta Sans', sans-serif";
+                
+                langEnBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-[#3F43D7] text-white transition";
+                langArBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg text-gray-400 hover:text-white transition";
+
+                // Default En texts if user switches first time
+                if(document.getElementById('mainTitleInput').value.includes('برنامج')) {
+                    document.getElementById('mainTitleInput').value = "POSTURE & FLAT FEET PROGRAM";
+                    document.getElementById('descriptionInput').value = "FULL GUIDE + WORKOUT VIDEOS";
+                    document.getElementById('bullet1Input').value = "Full body posture evaluation";
+                    document.getElementById('bullet2Input').value = "Step-by-step weekly routines";
+                    document.getElementById('bullet3Input').value = "10-15 mins daily at home";
+                    document.getElementById('ctaInput').value = "JOIN NOW";
+                    document.getElementById('ctaSubInput').value = "Link in bio";
+                }
+            } else {
+                post.setAttribute('dir', 'rtl');
+                post.style.fontFamily = "'Cairo', sans-serif";
+
+                langArBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-[#3F43D7] text-white transition";
+                langEnBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg text-gray-400 hover:text-white transition";
+
+                if(document.getElementById('mainTitleInput').value.includes('POSTURE')) {
+                    document.getElementById('mainTitleInput').value = "برنامج تصحيح القوام والقدم المسطحة";
+                    document.getElementById('descriptionInput').value = "دليل تطبيقي + فيديوهات التمارين";
+                    document.getElementById('bullet1Input').value = "نقَيّم حالتك من القدم لين القوام";
+                    document.getElementById('bullet2Input').value = "روتينات مرتبة أسبوع ورا أسبوع";
+                    document.getElementById('bullet3Input').value = "١٠-١٥ دقيقة باليوم من بيتك";
+                    document.getElementById('ctaInput').value = "اشترك الحين";
+                    document.getElementById('ctaSubInput').value = "الرابط في البايو";
+                }
+            }
+            updateDesign();
+        }
+
+        // Export Function to generate HD image
+        function exportTemplate() {
+            const postElement = document.getElementById('tiktokPost');
+            const exportBtn = document.getElementById('exportBtn');
+            
+            exportBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> جاري التصدير...`;
+            exportBtn.disabled = true;
+
+            // Render high quality image (scale 3 for HD portrait)
+            html2canvas(postElement, {
+                scale: 3,
+                useCORS: true,
+                backgroundColor: null,
+                logging: false
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `tiktok-post-${Date.now()}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+
+                exportBtn.innerHTML = `<i class="fa-solid fa-download"></i> تحميل`;
+                exportBtn.disabled = false;
+            }).catch(err => {
+                console.error(err);
+                alert('حدث خطأ أثناء تصدير الصورة، حاول مرة أخرى.');
+                exportBtn.innerHTML = `<i class="fa-solid fa-download"></i> تحميل`;
+                exportBtn.disabled = false;
+            });
+        }
+
+        // Initialize on load
+        window.onload = function() {
+            updateDesign();
+        };
+    </script>
+</body>
+</html>
